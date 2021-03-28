@@ -1,12 +1,24 @@
-import axios from "axios"
+import axios, { AxiosInstance } from "axios"
 
 export interface IGithubService {
     getRepository: (name: string, page: number) => Promise<Repo>;
 }
 
 export class GithubService implements IGithubService {
+    public axios: AxiosInstance;
+    constructor() {
+        this.axios = axios.create({
+            baseURL: "https://api.github.com",
+            headers: {
+                common: {
+                    Accept: "application/vnd.github.v3+json"
+                }
+            }
+        })
+    }
+
     public async getRepository(name: string, page: number) {
-        const result = await axios.get<Repo>("/search/repositories", {
+        const result = await this.axios.get<Repo>("/search/repositories", {
             params: {
                 q: `${name} in:name`,
                 page
