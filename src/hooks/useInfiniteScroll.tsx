@@ -6,25 +6,23 @@ export interface UseInfiniteScrollArgs {
     hasMore: boolean;
     loadMore: Function;
     threshold?: number;
-    container: "window" | "parent";
     loading: boolean;
-    checkInterval: number;
+    checkInterval?: number;
 }
 
 function useInifiniteScroll<T extends HTMLElement>({
     hasMore,
     threshold = 150,
-    container = "window",
     loading = false,
     loadMore = Function,
     checkInterval = 200
 }: UseInfiniteScrollArgs) {
     const ref = useRef<T>(null);
     const windowSize = useWindowSize();
-    const [listen, setListen] = useState(false);
+    const [listen, setListen] = useState(true);
 
     useEffect(() => {
-        if (loading) setListen(true);
+        if (!loading) setListen(true);
     }, [loading])
 
     function getOffset() {
@@ -32,21 +30,16 @@ function useInifiniteScroll<T extends HTMLElement>({
         if (element && !loading && windowSize.height !== undefined) {
             const { bottom } = element.getBoundingClientRect();
             let offset = bottom - windowSize.height;
-            if (container === "parent") {
-                const parent = element.parentNode as HTMLElement;
-                const { bottom: parentBottom } = parent.getBoundingClientRect();
-                offset = bottom - parentBottom;
-            }
             return offset;
         }
         else return null;
     }
 
-    function listenBottom() {
-        if (listen && hasMore) {
+    const listenBottom = () => {
+        if (listen && hasMore && !loading) {
             if (ref.current) {
                 const offset = getOffset();
-                if (offset) {
+                if (offset !== null) {
                     const valid = offset < threshold;
                     if (valid) {
                         setListen(false);
